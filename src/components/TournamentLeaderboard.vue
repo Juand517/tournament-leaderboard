@@ -5,13 +5,14 @@
       🏆 Tournament Leaderboard
     </v-card-title>
 
-    <v-row dense   class="mb-4">
+    <v-row dense class="mb-4">
       <v-col cols="12" sm="4">
         <v-text-field
           v-model="filters.username"
           label="Search by username"
           prepend-inner-icon="mdi-magnify"
-          outlined dense
+          outlined
+          dense
         />
       </v-col>
 
@@ -22,7 +23,9 @@
           item-text="name"
           item-value="code"
           label="Country"
-          outlined dense clearable
+          outlined
+          dense
+          clearable
         />
       </v-col>
 
@@ -36,8 +39,7 @@
         </v-btn>
       </v-col>
     </v-row>
-
-
+    <!-- <transition name="fade-slide"> -->
     <div v-if="loading" class="text-center my-6">
       <v-progress-circular indeterminate color="primary" size="40" />
       <div class="mt-2 grey--text">Loading leaderboard data...</div>
@@ -48,7 +50,7 @@
       v-else-if="error"
       type="error"
       outlined
-      prominentb
+      prominent
       class="my-4"
       dismissible
     >
@@ -68,105 +70,84 @@
     </v-alert>
 
     <!-- ✅ TODO 6: Participants table -->
-<v-data-table
-  :headers="headers"
-  :items="participants"
-  :loading="loading"
-  class="elevation-1"
-  disable-pagination
-  hide-default-footer
->
-  <!-- Rank Cell -->
-  <template v-slot:item.rank="{ item }">
-    <span
-      class="rank-badge"
-      :class="{
-        'rank-1': item.rank === 1,
-        'rank-2': item.rank === 2,
-        'rank-3': item.rank === 3
-      }"
+    <v-data-table
+      :headers="headers"
+      :items="participants"
+      :loading="loading"
+      class="elevation-1"
+      disable-pagination
+      hide-default-footer
+      :aria-label="'Tournament leaderboard table'"
     >
-      <template v-if="item.rank === 1">🏆</template>
-      <template v-else-if="item.rank === 2">🥈</template>
-      <template v-else-if="item.rank === 3">🥉</template>
-      <template v-else>{{ item.rank }}</template>
-    </span>
-  </template>
+      <!-- Rank Cell -->
+      <template slot="item.rank" slot-scope="{ item }">
+        <v-icon v-if="item.rank === 1" color="amber darken-2">mdi-crown</v-icon>
+        <v-icon v-else-if="item.rank === 2" color="blue-grey lighten-1"
+          >mdi-crown-outline</v-icon
+        >
+        <v-icon v-else-if="item.rank === 3" color="brown darken-1"
+          >mdi-crown-outline</v-icon
+        >
+        <span v-else>{{ item.rank }}</span>
+      </template>
 
-  <!-- Country Cell -->
-  <template v-slot:item.country="{ item }">
-    {{ getFlag(item.country) }} {{ item.countryName }}
-  </template>
+      <template slot="item.country" slot-scope="{ item }">
+        <img :src="getFlagUrl(item.country)" class="flag-img" alt="flag" />
+        {{ item.countryName }}
+      </template>
 
-  <!-- Score Cell -->
-  <template v-slot:item.score="{ item }">
-    {{ formatScore(item.score) }}
-  </template>
-
-</v-data-table>
-
+      <!-- Score Cell -->
+      <template slot="item.score" slot-scope="{ item }">
+        {{ formatScore(item.score) }}
+      </template>
+    </v-data-table>
+    <!-- </transition> -->
 
     <!-- ✅ TODO 7: Pagination controls -->
 
     <v-card-actions class="justify-space-between flex-wrap mt-4">
-  <span class="grey--text text--darken-1">
-    Showing {{ pageStart }}–{{ pageEnd }} of {{ totalElements }} results
-  </span>
-
-  <div class="d-flex align-center">
-    <!-- Botón Anterior -->
-    <v-btn
-      icon
-      @click="goPrevPage"
-      :disabled="loading || isFirstPage"
-    >
-    </v-btn>
-
-    <!-- Paginación -->
-    <v-pagination
-      v-model="currentPage"
-      :length="totalPages"
-      @input="changePage"
-      :disabled="loading"
-      color="primary"
-    />
-
-    <!-- Botón Siguiente -->
-    <v-btn
-      icon
-      @click="goNextPage"
-      :disabled="loading || isLastPage"
-    >
-      <!-- <v-icon>mdi-chevron-right</v-icon> -->
-    </v-btn>
-  </div>
-</v-card-actions>
-
-    <!-- <v-card-actions class="justify-space-between flex-wrap mt-4">
       <span class="grey--text text--darken-1">
         Showing {{ pageStart }}–{{ pageEnd }} of {{ totalElements }} results
       </span>
 
-      <v-pagination
-        v-model="currentPage"
-        :length="totalPages"
-        @input="changePage"
-        :disabled="loading"
-        color="primary"
-      />
-    </v-card-actions> -->
+      <div class="d-flex align-center">
+        <!-- Botón Anterior -->
+        <v-btn icon @click="goPrevPage" :disabled="loading || isFirstPage">
+        </v-btn>
+
+        <!-- Paginación -->
+        <v-pagination
+          v-model="currentPage"
+          :length="totalPages"
+          @input="changePage"
+          :disabled="loading"
+          color="primary"
+        />
+
+        <!-- Botón Siguiente -->
+        <v-btn icon @click="goNextPage" :disabled="loading || isLastPage">
+          <!-- <v-icon>mdi-chevron-right</v-icon> -->
+        </v-btn>
+      </div>
+    </v-card-actions>
   </v-card>
 </template>
 
 <script>
-import { mapState, mapGetters, mapActions, } from "vuex";
-
+import { mapState, mapGetters, mapActions } from "vuex";
 
 export default {
   name: "TournamentLeaderboard",
-
+//en data se definen todas la variables aqu
   data() {
     return {
+      headers: [
+        { text: "Rank", value: "rank" },
+        { text: "Username", value: "username" },
+        { text: "Country", value: "country" },
+        { text: "Score", value: "score" },
+      ],
+
       filters: { username: "", country: "" },
       countries: [],
       pageableParams: {
@@ -209,28 +190,56 @@ export default {
     isLastPage() {
       return this.currentPage >= this.totalPages || this.totalPages === 0;
     },
-
-
   },
 
   watch: {
-    // ✅ Username search with debounce (500ms)
+    // Username search con debounce (500ms)
     "filters.username": {
       handler() {
+        // Guardar filtros en localStorage
+        localStorage.setItem(
+          "leaderboardFilters",
+          JSON.stringify(this.filters)
+        );
+
         clearTimeout(this.debounceTimer);
         this.debounceTimer = setTimeout(() => {
           this.applyFilters();
         }, 500);
       },
-      deep: true,
     },
-"filters.country"() {
-  this.applyFilters();
-},
 
+    "filters.country"() {
+      // Guardar filtros en localStorage
+      localStorage.setItem("leaderboardFilters", JSON.stringify(this.filters));
+      this.applyFilters();
+    },
+
+    currentPage(newVal) {
+      localStorage.setItem("leaderboardPage", String(newVal));
+    },
   },
 
   mounted() {
+    const savedFilters = localStorage.getItem("leaderboardFilters");
+    if (savedFilters) {
+      try {
+        this.filters = JSON.parse(savedFilters);
+      } catch (e) {
+        console.warn("Could not parse saved filters", e);
+      }
+    }
+
+    // Recuperar página guardada
+    const savedPage = localStorage.getItem("leaderboardPage");
+    if (savedPage) {
+      const pageNumber = parseInt(savedPage, 10);
+      if (!isNaN(pageNumber) && pageNumber > 0) {
+        this.currentPage = pageNumber;
+        this.pageableParams.page = pageNumber - 1;
+      }
+    }
+
     this.loadCountries();
     this.loadLeaderboard();
   },
@@ -249,7 +258,9 @@ export default {
 
     async loadCountries() {
       try {
-        this.countries = await this.$store.dispatch("leaderboard/fetchCountries");
+        this.countries = await this.$store.dispatch(
+          "leaderboard/fetchCountries"
+        );
       } catch (err) {
         console.warn("Could not load countries", err);
       }
@@ -269,44 +280,38 @@ export default {
     },
 
     changePage(page) {
-    if (page < 1 || page > this.totalPages) return;
+      if (page < 1 || page > this.totalPages) return;
 
-    this.pageableParams.page = page - 1;
-    this.currentPage = page;
-    this.loadLeaderboard();
+      this.pageableParams.page = page - 1;
+      this.currentPage = page;
+      this.loadLeaderboard();
     },
 
-goPrevPage() {
-  if (!this.isFirstPage && !this.loading) {
-    this.changePage(this.currentPage - 1);
-  }
-},
+    goPrevPage() {
+      if (!this.isFirstPage && !this.loading) {
+        this.changePage(this.currentPage - 1);
+      }
+    },
 
-goNextPage() {
-  if (!this.isLastPage && !this.loading) {
-    this.changePage(this.currentPage + 1);
-  }
-},
+    goNextPage() {
+      if (!this.isLastPage && !this.loading) {
+        this.changePage(this.currentPage + 1);
+      }
+    },
     // ...mapMutations(["setError"]),
     retryLoad() {
       this.loadLeaderboard();
-      // this.setError(null);    
+      // this.setError(null);
     },
 
-    getFlag(code) {
-      return code
-        ? code
-            .toUpperCase()
-            .replace(/./g, (c) => String.fromCodePoint(127397 + c.charCodeAt()))
-        : "";
+    getFlagUrl(code) {
+      if (!code) return "";
+      return `https://flagcdn.com/24x18/${code.toLowerCase()}.png`;
     },
 
     formatScore(score) {
       return Math.round(score).toLocaleString();
     },
-
-
-    
   },
 
   beforeDestroy() {
@@ -314,7 +319,6 @@ goNextPage() {
   },
 };
 </script>
-
 <style scoped>
 .tournament-leaderboard {
   max-width: 900px;
@@ -349,4 +353,24 @@ goNextPage() {
 table tr:hover {
   background-color: #f9f9f9;
 }
+
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 0.25s ease;
+}
+
+.fade-slide-enter,
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(4px);
+}
+
+.flag-img {
+  width: 22px;
+  height: 16px;
+  object-fit: cover;
+  /* margin-right: 6px; */
+  border: 1px solid #ddd;
+}
+
 </style>

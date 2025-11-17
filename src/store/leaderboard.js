@@ -32,12 +32,36 @@ const mutations = {
 };
 
 const actions = {
-  async fetchLeaderboard({ commit }, pageableParams) {
+  async fetchLeaderboard({ commit }, { page, size, sort, filters }) {
     commit('setLoading', true);
     commit('setError', null);
 
     try {
-      const data = await tournamentService.getLeaderboard(pageableParams);
+      let data;
+
+      // Detectar si hay filtros activos
+      const hasFilters =
+        filters &&
+        (
+          (filters.username && filters.username.trim() !== "") ||
+          (filters.country && filters.country.trim() !== "")
+        );
+
+      if (hasFilters) {
+        // 👇 Usa el servicio filtrado
+        data = await tournamentService.getFilteredLeaderboard(filters, {
+          page,
+          size,
+          sort,
+        });
+      } else {
+        // 👇 Sin filtros → leaderboard normal
+        data = await tournamentService.getLeaderboard({
+          page,
+          size,
+          sort,
+        });
+      }
       commit('setLeaderboard', data.content);
       commit('setPageInfo', {
         totalElements: data.totalElements,
@@ -45,10 +69,15 @@ const actions = {
       });
     } catch (error) {
       commit('setError', error.message || 'Error loading leaderboard');
-      commit('clearLeaderboard');
+      // Opcional: si no quieres perder la tabla anterior, comenta esta línea:
+      // commit('clearLeaderboard');
     } finally {
       commit('setLoading', false);
     }
+  },
+
+  async fetchCountries() {
+    return await tournamentService.getCountries();
   },
 };
 
