@@ -61,7 +61,7 @@ class TournamentService {
 
     if (username) {
       filtered = filtered.filter((p) =>
-        p.username.toLowerCase().includes(username.toLowerCase())
+        p.username.toLowerCase().startsWith(username.toLowerCase())
       );
     }
 
