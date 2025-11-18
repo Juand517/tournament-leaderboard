@@ -7,27 +7,16 @@ class TournamentService {
       console.log('Participants generated:', this.participants.length);
 
     }
- /* const pageableParams ={
-    page : 2,
-    size : 10
-    sort : {
-      value : "rank",
-      order: "desc"  
-    }
-}
- 
-*/
 
   // Get paginated leaderboard
   async getLeaderboard(pageableParams) {
-    // Simulate API delay
+    await this.simulateDelay();
     // Return: { content: [], totalElements: X, totalPages: X, number: X, size: X }
 
-    // Simulate network delay
-    await this.simulateDelay();
+    
 
     // Optionally simulate errors
-    if (this.shouldSimulateError()) {
+    if (this.SimulateError()) {
       throw new Error('Failed to fetch leaderboard');
     }
     const size =  pageableParams.size;
@@ -118,10 +107,6 @@ class TournamentService {
   countries.sort((a, b) => a.name.localeCompare(b.name));
 
   return countries;
-
-
-    // Return unique countries from participant data
-    // Format: [{ code: "US", name: "United States" }, ...]
   }
 
   simulateDelay() {
@@ -129,35 +114,9 @@ class TournamentService {
     return new Promise(resolve => setTimeout(resolve, delay));
   }
 
-  shouldSimulateError() {
+  SimulateError() {
     return Math.random() < 0.1; // 10% chance of error
   }
 
-
 }
 export default new TournamentService();
-
-// const service = new TournamentService();
-
-// async function test(){
-//   const pageParams = {
-//    page : 2,
-//     size : 10,
-//     sort : {
-//       value : "score",
-//       order: "desc"  
-//     }
-//   }
-  
-//   const content = await service.getLeaderboard(pageParams)
-//   console.log(content);
-// }
-
-// test()
-
-// service.getLeaderboard()
-//   .then(result =>{
-//       console.log(result);
-//   }).catch(error =>{
-//     console.log(error)
-//   });
