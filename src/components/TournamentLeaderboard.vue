@@ -1,6 +1,6 @@
 <template>
   <v-card class="tournament-leaderboard neon-card pa-4">
-    <div class="leaderboard-banner">🏆 TOURNAMET LEADERBOARD 🏆</div>
+    <div class="leaderboard-banner">🏆 TOURNAMENT LEADERBOARD 🏆</div>
 
     <v-row v-if="!error" dense class="mb-4 mt-6">
 
